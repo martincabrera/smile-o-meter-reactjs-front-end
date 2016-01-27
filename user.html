@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Smile-o-meter - User profile</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+</head>
+<body>
+  <div id="content"></div>
+  <script type="text/babel">
+
+  
+  var user_id = location.search.split('user_id=')[1] ? location.search.split('user_id=')[1] : "1" ;
+  var api_emotions_endpoint = "https://smile-o-meter.herokuapp.com/users/" + user_id + "/emotions"
+
+
+    var EmotionList = React.createClass({
+      render: function() {
+        var commentNodes = this.props.data.map(function(emotion) {
+          return (
+            <Emotion status={emotion.status} key={emotion.id} date={emotion.emotion_on} />
+            );
+        });
+        return (
+          <div className="commentList">
+            {commentNodes}
+          </div>
+          );
+      }
+    });
+
+    var Emotion = React.createClass({
+      render: function() {
+        var imageEmotion = function(my_status) {
+          if (my_status == 'sad')
+            return (
+            <img src={'images/sad.jpg'} width='20' height='20'/>
+            );
+          else
+            return (
+            <img src={'images/happy.jpg'} width='20' height='20'/>
+            );
+        };
+        return (
+          <div className="comment">
+            <h2 className="commentAuthor">
+              Date: { this.props.date} --  Emotion: {imageEmotion(this.props.status)}
+            </h2>
+          </div>
+          );
+      }
+    });
+
+    var EmotionForm = React.createClass({
+      render: function() {
+        return (
+          <div className="commentForm">
+            Hello, world! I am a EmotionForm.
+          </div>
+          );
+      }
+    });
+
+
+
+    var EmotionBox = React.createClass({
+      getInitialState: function() {
+        return {
+                data: [],
+                email_address: []
+                };
+      },
+      componentDidMount: function() {
+        $.ajax({
+          url: this.props.url,
+          dataType: 'json',
+          cache: false,
+          success: function(data) {
+            this.setState(  {
+                              data: data.emotions,
+                              email_address: data.meta.user_email
+                            });
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+      },
+      render: function() {
+        return (
+          <div className="commentBox">
+            <h1>User emotions for {this.state.email_address} </h1>
+            <EmotionList data={this.state.data} />
+            <EmotionForm />
+          </div>
+          );
+      }
+    });
+    ReactDOM.render(
+      <EmotionBox url={api_emotions_endpoint} />,
+      document.getElementById('content')
+      );
+
+
+  </script>
+</body>
+</html>
