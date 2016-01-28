@@ -58,31 +58,41 @@
     var EmotionForm = React.createClass({
       getInitialState: function() {
         return {
-          my_status: null
+          my_status: null,
+          showDiv : true
         };
       },
       setHappy: function() {
-       this.setState({my_status: 'happy'}, function() {
+       this.setState({my_status: 'happy', showDiv: false}, function() {
         this.sendEmotion();
       });
      },
      setSad: function() {
-       this.setState({my_status: 'sad'}, function() {
+       this.setState({my_status: 'sad', showDiv: false}, function() {
         this.sendEmotion();
       });
      },
      sendEmotion: function() {
       var today = new Date();
       var today_date = today.getFullYear() + '-' + ('0' + today.getMonth() +1).slice(-2) + '-' + ('0' + today.getDate()).slice(-2)
+
       this.props.onEmotionSubmit({ emotion: { status: this.state.my_status, emotion_on: today_date}});
     },
     render: function() {
-      return (
+      if (this.state.showDiv == true)
+      {
+        return (
         <div>
           <h2>How are you feeling today?</h2>
           <img src={'images/sad.jpg'} width='50' height='50' onClick={this.setSad}/>&nbsp;&nbsp;&nbsp;&nbsp;<img src={'images/happy.jpg'} width='50' height='50' onClick={this.setHappy} />
         </div>
         );
+      } 
+      else
+      {
+        return ( <div> </div>);
+      }
+      
     }
   });
 
