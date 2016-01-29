@@ -1,9 +1,11 @@
 var api_users_endpoint = "https://smile-o-meter.herokuapp.com/users/";
 var user_html = "user.html?user_id=";
 var today = new Date();
-var daysSorted = [today.toISOString().slice(0, 10)];
+today = today.toISOString().slice(0, 10);
+var tempDay = new Date();
+var daysSorted = [];
 for(var i = 0; i < 6; i++) {
-  var newDate = new Date(today.setDate(today.getDate() - 1));
+  var newDate = new Date(tempDay.setDate(tempDay.getDate() - 1));
   daysSorted.push(newDate.toISOString().slice(0, 10));
 };
 
@@ -27,6 +29,7 @@ var UsersTableHeader = React.createClass({
     return (
       <tr>
         <th>User</th>
+        <th>{today}</th>
         {days}
       </tr>
     );
@@ -112,6 +115,7 @@ var UserRow = React.createClass({
       return this.state.emotions[day];
   },
   render: function() {
+    var api_emotions_endpoint = api_users_endpoint + this.props.user_id + "/emotions"
     var i = 0;
     var days = daysSorted.map(function(day) {
       i++;
@@ -121,7 +125,8 @@ var UserRow = React.createClass({
     }.bind(this));
     return (
       <tr className="userRow">
-        <td><a href={user_html + this.props.user_id}>{this.props.email}</a></td>
+        <td>{this.props.email}</td>
+        <UserFormCell initialEmotion={this.getEmotion([today])} url={api_emotions_endpoint} />
         {days}
       </tr>
     );
@@ -137,13 +142,45 @@ var UserCell = React.createClass({
 });
 
 var UserFormCell = React.createClass({
+  getInitialState: function() {
+    return {
+      emotion: ''
+    };
+  },
+  componentWillReceiveProps: function(nextProps) {
+    this.setState({
+      emotion: nextProps.initialEmotion
+    });
+  },
+  updateEmotionStatus: function(status) {
+    $.ajax({
+      url: this.props.url,
+      dataType: 'json',
+      type: 'POST',
+      data: { emotion: { status: status, emotion_on: today}},
+      success: function(data) {
+        this.setState({
+          emotion: status
+        });
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
   render: function() {
-    return (
-      <td>
-        <img src={'images/sad.jpg'} width='30' height='30' />
-        <img src={'images/happy.jpg'} width='30' height='30' />
-      </td>
-    );
+    if(this.state.emotion === "pending") {
+      return (
+        <td>
+          <img src={'images/sad.jpg'}   width='30' height='30' onClick={this.updateEmotionStatus.bind(this, 'sad')} />
+          <img src={'images/happy.jpg'} width='30' height='30' onClick={this.updateEmotionStatus.bind(this, 'happy')} />
+        </td>
+      );
+    } else {
+      return (
+        <UserCell emotion={this.state.emotion} url={this.props.url} />
+      );
+    }
   }
 });
 
